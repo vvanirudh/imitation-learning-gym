@@ -41,3 +41,14 @@ class ReacherEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             self.sim.data.qvel.flat[:2],
             self.get_body_com("fingertip") - self.get_body_com("target")
         ])
+
+    def compute_reward(self, ob, a):
+        '''
+        Custom function to compute reward given current observation and action executed
+        '''
+        vec = ob[-3:]
+        reward_dist = -np.linalg.norm(vec)
+        reward_ctrl = -np.square(a).sum()
+        reward = reward_dist + reward_ctrl
+
+        return reward
