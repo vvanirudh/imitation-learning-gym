@@ -108,6 +108,9 @@ class Env(object):
         """
         raise NotImplementedError
 
+    def compute_reward(self, ob, a):
+        raise NotImplementedError
+
     def close(self):
         """Override _close in your subclass to perform any necessary cleanup.
 
