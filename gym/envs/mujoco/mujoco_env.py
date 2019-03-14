@@ -75,6 +75,9 @@ class MujocoEnv(gym.Env):
         and so forth.
         """
         pass
+
+    def compute_state_action_reward(self, ob, a):
+        raise NotImplementedError
     # -----------------------------
 
     def reset(self):
