@@ -108,7 +108,7 @@ class Env(object):
         """
         raise NotImplementedError
 
-    def compute_reward(self, ob, a):
+    def compute_state_action_reward(self, ob, a):
         raise NotImplementedError
 
     def close(self):

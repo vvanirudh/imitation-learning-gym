@@ -42,7 +42,7 @@ class ReacherEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             self.get_body_com("fingertip") - self.get_body_com("target")
         ])
 
-    def compute_reward(self, ob, a):
+    def compute_state_action_reward(self, ob, a):
         '''
         Custom function to compute reward given current observation and action executed
         '''
