@@ -257,7 +257,7 @@ class Wrapper(Env):
         return self.env.compute_reward(achieved_goal, desired_goal, info)
 
     def compute_state_action_reward(self, ob, a):
-        return self.env.compute_state_action_reward
+        return self.env.compute_state_action_reward(ob, a)
 
     def __str__(self):
         return '<{}{}>'.format(type(self).__name__, self.env)
