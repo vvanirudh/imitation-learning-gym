@@ -111,6 +111,12 @@ class Env(object):
     def compute_state_action_reward(self, ob, a):
         raise NotImplementedError
 
+    def state_vector(self):
+        raise NotImplementedError
+
+    def set_state(self, qpos, qvel):
+        raise NotImplementedError
+
     def close(self):
         """Override _close in your subclass to perform any necessary cleanup.
 
@@ -258,6 +264,12 @@ class Wrapper(Env):
 
     def compute_state_action_reward(self, ob, a):
         return self.env.compute_state_action_reward(ob, a)
+
+    def state_vector(self):
+        return self.env.state_vector()
+
+    def set_state(self, qpos, qvel):
+        return self.env.set_state(qpos, qvel)
 
     def __str__(self):
         return '<{}{}>'.format(type(self).__name__, self.env)
