@@ -55,3 +55,21 @@ class PusherEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             self.get_body_com("object"),
             self.get_body_com("goal"),
         ])
+
+    def compute_state_action_reward(self, ob, a):
+        '''
+        Custom function to compute reward given current observation and action executed
+        '''
+        tips_arm = ob[14:17]
+        object = ob[17:20]
+        goal = ob[20:23]
+
+        vec_1 = object - tips_arm
+        vec_2 = object - goal
+
+        reward_near = - np.linalg.norm(vec_1)
+        reward_dist = - np.linalg.norm(vec_2)
+        reward_ctrl = - np.square(a).sum()
+        reward = reward_dist + 0.1 * reward_ctrl + 0.5 * reward_near
+
+        return reward
