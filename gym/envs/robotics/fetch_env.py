@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 from gym.envs.robotics import rotations, robot_env, utils
 
@@ -188,3 +189,10 @@ class FetchEnv(robot_env.RobotEnv):
 
     def render(self, mode='human', width=500, height=500):
         return super(FetchEnv, self).render(mode, width, height)
+
+    def state_vector(self):
+        state = copy.deepcopy(self.sim.get_state())
+        goal = copy.deepcopy(self.goal)
+        object_qpos = self.sim.data.get_joint_qpos('object0:joint')
+
+        return np.concatenate([state, goal, object_qpos])
