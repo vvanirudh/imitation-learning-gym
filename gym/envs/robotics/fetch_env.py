@@ -193,6 +193,8 @@ class FetchEnv(robot_env.RobotEnv):
     def state_vector(self):
         state = copy.deepcopy(self.sim.get_state())
         goal = copy.deepcopy(self.goal)
-        object_qpos = self.sim.data.get_joint_qpos('object0:joint')
-
-        return np.concatenate([state, goal, object_qpos])
+        if self.has_object:            
+            object_qpos = self.sim.data.get_joint_qpos('object0:joint')
+            return np.concatenate([state, goal, object_qpos])
+        else:
+            return np.concatenate([state, goal])
