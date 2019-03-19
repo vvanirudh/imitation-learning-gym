@@ -215,7 +215,7 @@ class FetchEnv(robot_env.RobotEnv):
         self.goal = goal.copy()
 
         if self.has_object and object_pos is not None:
-            assert object_qpos.shape == (7,)
+            assert object_pos.shape == (7,)
             self.sim.data.set_joint_qpos('object0:joint', object_pos)
         
         self.sim.forward()
