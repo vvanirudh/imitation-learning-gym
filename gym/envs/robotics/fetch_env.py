@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import mujoco_py
 
 from gym.envs.robotics import rotations, robot_env, utils
 
@@ -192,9 +193,29 @@ class FetchEnv(robot_env.RobotEnv):
 
     def state_vector(self):
         state = copy.deepcopy(self.sim.get_state())
-        goal = copy.deepcopy(self.goal)
+        qpos, qvel = state.qpos, state.qvel
         if self.has_object:            
             object_qpos = self.sim.data.get_joint_qpos('object0:joint')
-            return np.concatenate([state, goal, object_qpos])
+            return np.concatenate([qpos,
+                                   qvel,
+                                   self.goal,
+                                   object_qpos])
         else:
-            return np.concatenate([state, goal])
+            return np.concatenate([qpos,
+                                   qvel,
+                                   self.goal])
+
+    def set_state_with_goal(self, qpos, qvel, goal, object_pos=None):
+        old_state = self.sim.get_state()
+        assert qpos.shape == old_state.qpos.shape and qvel.shape == old_state.qvel.shape
+        new_state = mujoco_py.MjSimState(old_state.time, qpos, qvel,
+                                         old_state.act, old_state.udd_state)
+
+        self.sim.set_state(new_state)
+        self.goal = goal.copy()
+
+        if self.has_object and object_pos is not None:
+            assert object_qpos.shape == (7,)
+            self.sim.data.set_joint_qpos('object0:joint', object_pos)
+        
+        self.sim.forward()

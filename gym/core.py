@@ -206,6 +206,9 @@ class GoalEnv(Env):
         """
         raise NotImplementedError()
 
+    def set_state_with_goal(qpos, qvel, goal, object_pos=None):
+        raise NotImplementedError()
+
 warn_once = True
 
 def deprecated_warn_once(text):
@@ -270,6 +273,9 @@ class Wrapper(Env):
 
     def set_state(self, qpos, qvel):
         return self.env.set_state(qpos, qvel)
+
+    def set_state_with_goal(self, qpos, qvel, goal, object_pos=None):
+        return self.env.set_state_with_goal(qpos, qvel, goal, object_pos)
 
     def __str__(self):
         return '<{}{}>'.format(type(self).__name__, self.env)
