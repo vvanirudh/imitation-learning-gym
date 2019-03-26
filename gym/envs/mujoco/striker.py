@@ -2,6 +2,7 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
+
 class StrikerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self):
         utils.EzPickle.__init__(self)
@@ -13,7 +14,8 @@ class StrikerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def step(self, a):
         vec_1 = self.get_body_com("object") - self.get_body_com("tips_arm")
         vec_2 = self.get_body_com("object") - self.get_body_com("goal")
-        self._min_strike_dist = min(self._min_strike_dist, np.linalg.norm(vec_2))
+        self._min_strike_dist = min(
+            self._min_strike_dist, np.linalg.norm(vec_2))
 
         if np.linalg.norm(vec_1) < self.strike_threshold:
             self._striked = True
@@ -33,7 +35,7 @@ class StrikerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         ob = self._get_obs()
         done = False
         return ob, reward, done, dict(reward_dist=reward_dist,
-                reward_ctrl=reward_ctrl)
+                                      reward_ctrl=reward_ctrl)
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
@@ -49,8 +51,8 @@ class StrikerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self.ball = np.array([0.5, -0.175])
         while True:
             self.goal = np.concatenate([
-                    self.np_random.uniform(low=0.15, high=0.7, size=1),
-                    self.np_random.uniform(low=0.1, high=1.0, size=1)])
+                self.np_random.uniform(low=0.15, high=0.7, size=1),
+                self.np_random.uniform(low=0.1, high=1.0, size=1)])
             if np.linalg.norm(self.ball - self.goal) > 0.17:
                 break
 
@@ -60,7 +62,7 @@ class StrikerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         angle = -np.arctan(diff[0] / (diff[1] + 1e-8))
         qpos[-1] = angle / 3.14
         qvel = self.init_qvel + self.np_random.uniform(low=-.1, high=.1,
-                size=self.model.nv)
+                                                       size=self.model.nv)
         qvel[7:] = 0
         self.set_state(qpos, qvel)
         return self._get_obs()
@@ -73,3 +75,29 @@ class StrikerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             self.get_body_com("object"),
             self.get_body_com("goal"),
         ])
+
+    def compute_state_action_reward(self, ob, a):
+        tips_arm_pos = ob[14:17]
+        object_pos = ob[17:20]
+        goal_pos = ob[20:23]
+
+        vec_1 = object_pos - tips_arm_pos
+        vec_2 = object_pos - goal_pos
+        self._min_strike_dist = min(
+            self._min_strike_dist, np.linalg.norm(vec_2))
+
+        if np.linalg.norm(vec_1) < self.strike_threshold:
+            self._striked = True
+            self._strike_pos = tips_arm_pos
+
+        if self._striked:
+            vec_3 = object_pos - self._strike_pos
+            reward_near = - np.linalg.norm(vec_3)
+        else:
+            reward_near = - np.linalg.norm(vec_1)
+
+        reward_dist = - np.linalg.norm(self._min_strike_dist)
+        reward_ctrl = - np.square(a).sum()
+        reward = 3 * reward_dist + 0.1 * reward_ctrl + 0.5 * reward_near
+
+        return reward
