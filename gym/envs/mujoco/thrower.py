@@ -2,6 +2,7 @@ import numpy as np
 from gym import utils
 from gym.envs.mujoco import mujoco_env
 
+
 class ThrowerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self):
         utils.EzPickle.__init__(self)
@@ -29,7 +30,7 @@ class ThrowerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         ob = self._get_obs()
         done = False
         return ob, reward, done, dict(reward_dist=reward_dist,
-                reward_ctrl=reward_ctrl)
+                                      reward_ctrl=reward_ctrl)
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
@@ -45,7 +46,7 @@ class ThrowerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         qpos[-9:-7] = self.goal
         qvel = self.init_qvel + self.np_random.uniform(low=-0.005,
-                high=0.005, size=self.model.nv)
+                                                       high=0.005, size=self.model.nv)
         qvel[7:] = 0
         self.set_state(qpos, qvel)
         return self._get_obs()
@@ -58,3 +59,25 @@ class ThrowerEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             self.get_body_com("ball"),
             self.get_body_com("goal"),
         ])
+
+    def compute_state_action_reward(self, ob, a):
+        ball_pos = ob[17:20]
+        goal_pos = ob[20:23]
+
+        ball_xy = ball_pos[:2]
+        goal_xy = goal_pos[:2]
+
+        if not self._ball_hit_ground and ball_pos[2] < -0.25:
+            self._ball_hit_ground = True
+            self._ball_hit_location = ball_pos
+
+        if self._ball_hit_ground:
+            ball_hit_xy = self._ball_hit_location[:2]
+            reward_dist = -np.linalg.norm(ball_hit_xy - goal_xy)
+        else:
+            reward_dist = -np.linalg.norm(ball_xy - goal_xy)
+        reward_ctrl = - np.square(a).sum()
+
+        reward = reward_dist + 0.002 * reward_ctrl
+
+        return reward
